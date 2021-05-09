@@ -1,16 +1,17 @@
-platform.apiLevel = '2.7'
-
--- Device Info
+-- Device Info for TI-nspire
 -- By Connor Slade
 
 -- Config
-local programVersion = '1.2'
+platform.apiLevel = '2.7'
+local programVersion = '1.2.3'
 local fontSize = 12 -- 6 to 255 Defult 12
+local keyColor = {255, 255, 255} -- Key Text Color {r, g, b}
+local valueColor = {125, 125, 255} -- Value Text Color {r, g, b}
 
 -- Set Background Color
-function setBG(gc, r, g, b, w, h)
+function setBG(gc, r, g, b)
     gc:setColorRGB(r, g, b) 
-    gc:fillRect(0, 0, 318, 212)
+    gc:fillRect(0, 0, platform.window:width(), platform.window:height())
     gc:setColorRGB(255, 255, 255)
 end
 
@@ -18,13 +19,13 @@ end
 function drawKeyValue(gc, keyValue, x, y)
     local key = keyValue[1]..": "
     local value = keyValue[2] or ""
-    local totalString = key..keyValue[2]
+    local totalString = key or "" .. keyValue[2] or ""
     if gc:getStringWidth(totalString) > getXYdisplaySize(gc, true) then
         value = dotString(gc, totalString, value)
     end
-    gc:setColorRGB(255, 255, 255)
+    gc:setColorRGB(keyColor[1], keyColor[2], keyColor[3])
     gc:drawString(key, x, y)
-    gc:setColorRGB(125, 125, 255)
+    gc:setColorRGB(valueColor[1], valueColor[2], valueColor[3])
     gc:drawString(value, x + gc:getStringWidth(key), y)
 end
 
@@ -68,7 +69,7 @@ end
 
 -- Capitalize the first char of a string
 function capString(str)
-    local working = str:lower()
+    local working = tostring(str):lower()
     local first = working:sub(1, 1):upper()
     working = first..working:sub(2)
     return working
@@ -79,9 +80,9 @@ function on.paint(gc)
     -- Define the items to be put on display
     local items = {
         {"Local", locale.name()},
-        {"API-Level", platform.apiLevel},
+        {"APILevel", platform.apiLevel},
         {"Platform", getPlatformFromId(platform.hw())},
-        {"IsColor", capString(tostring(platform.isColorDisplay()))},
+        {"IsColor", capString(platform.isColorDisplay())},
         {"DisplaySize", getXYdisplaySize(gc, true, true)},
         {"DevID", platform.getDeviceID() or "None - Emulated?"},
         {"ClipBoard", clipboard.getText()},
@@ -102,4 +103,9 @@ function on.paint(gc)
     for i in pairs(items) do
         drawKeyValue(gc, {items[i][1], items[i][2]}, 5, i*fontSize*1.7+20)
     end
+end
+
+-- Define Events
+function on.enterKey()
+    platform.window:invalidate()
 end
