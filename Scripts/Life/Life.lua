@@ -2,21 +2,23 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version  = '2.1'
-local timerPeroid = 0.1
+local version  = '2.2.2'
+local timerPeroids = {0.5, 0.1, 0.01}
 local cellSize = 26
 local gridSize = {12, 8}
 local offset = {3, 2}
 
 -- Dont Mess with this
 local loaded = false
+local mouseDown = false
+local timerRunning = false
+local mouseToggleType = false
+local gen = 0
 local cells = {}
 local startCells = {}
-local mouseDown = false
-local mouseToggleType = false
 local lastCell = {-1, -1}
-local timerRunning = false
-local gen = 0
+local timerPeroid = timerPeroids[2]
+
 
 -- Draw Cell Grid
 function drawGrid(gc)
@@ -78,7 +80,7 @@ function simulateGrid()
     end
     cells = newCells
     gen = gen + 1
-    platform.window:invalidate()
+    docChanged()
 end
 
 -- Toggle state of a cell based off of pixel on the screen
@@ -89,7 +91,7 @@ function toggleCellByPx(mx, my, value)
         else
             cells[my][mx] = value 
         end
-        platform.window:invalidate()
+        docChanged()
         return cells[my][mx]
     end
     return false
@@ -124,7 +126,7 @@ function randomizeCellState()
             cells[i][j] = math.random() > 0.5
         end
     end
-    platform.window:invalidate()
+    docChanged()
 end
 
 -- Invert Cell State
@@ -135,7 +137,7 @@ function invertCells()
             cells[i][j] = not cells[i][j]
         end
     end
-    platform.window:invalidate()   
+    docChanged()
 end
 
 -- Load Preset Data - {{x, y}, {x, y}...}
@@ -146,7 +148,7 @@ function loadPreset(presetData)
         working[data[2]][data[1]] = true
     end
     cells = working
-    platform.window:invalidate()
+    docChanged()
 end
 
 -- Increment / Decrement value with a max and min value
@@ -164,12 +166,17 @@ function changeWorldSize(inc) -- 156, 104
     gridSize[1] = safeCng(gridSize[1], inc, 104, 156)
     gridSize[2] = safeCng(gridSize[2], inc, 104, 156)
     cells = genBlankCells(gridSize[1], gridSize[2])
-    platform.window:invalidate()
+    docChanged()
 end
 
 function changeCellSize(inc)
     cellSize = safeCng(cellSize, inc, 2, 206)
+    docChanged()
+end
+
+function docChanged()
     platform.window:invalidate()
+    document.markChanged()
 end
 
 -- Run once on program start
@@ -196,7 +203,11 @@ function on.activate()
             {"Size - [-]", function() changeWorldSize(-1) end},
             "-",
             {"Cell Size + [×]", function() changeCellSize(1) end},
-            {"Cell Size - [÷]", function() changeCellSize(-1) end}
+            {"Cell Size - [÷]", function() changeCellSize(-1) end},
+            "-",
+            {"Fast!", function() timerPeroid = timerPeroids[3] end},
+            {"Normal", function() timerPeroid = timerPeroids[2] end},
+            {"Slow", function() timerPeroid = timerPeroids[1] end}
         },
         {"Preset", 
             {"Glider", function() loadPreset({{1, 2}, {2, 3}, {3, 1}, {3, 2}, {3, 3}}) end},
@@ -237,7 +248,7 @@ function on.mouseDown(x, y)
     mouseToggleType = toggleCellByPx(mx, my)
     lastCell[1] = mx
     lastCell[2] = my
-    platform.window:invalidate()
+    docChanged()
 end
 
 -- On mouse up
@@ -281,11 +292,12 @@ end
 function on.enterKey()
     if timerRunning then
         timer.stop()
+        platform.window:invalidate()
     else
         timer.start(timerPeroid)
+        docChanged()
     end
     timerRunning = not timerRunning
-    platform.window:invalidate()
 end
 
 -- On Esc = Clear Grid
@@ -295,7 +307,7 @@ function on.escapeKey()
     timer.stop()
     timerRunning = false
     gen = 0
-    platform.window:invalidate()
+    docChanged()
 end
 
 -- On Backspace = Rollback Grid to pre simulation
@@ -304,5 +316,21 @@ function on.backspaceKey()
     timer.stop()
     timerRunning = false
     gen = 0
-    platform.window:invalidate()
+    docChanged()
+end
+
+function on.save()
+    return {cells, startCells, gen}
+end
+
+function on.restore(state)
+    local cellsData = state[1]
+    local startCellsData = state[2]
+    local genData = state[3]
+    if cellsData ~= nil then cells = cellsData end
+    if startCellsData ~= nil then startCells = startCellsData end
+    if genData ~= nil then gen = genData end
+    if genData ~= nil and startCellsData ~= nil and cellsData ~= nil then
+        loaded = true
+    end
 end
