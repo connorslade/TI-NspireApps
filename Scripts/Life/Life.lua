@@ -111,10 +111,48 @@ function trTextAlign(gc, str, padding, paddingY)
     gc:drawString(str, x, y)
 end
 
+function randomizeCellState()
+    for i in pairs(cells) do
+        for j in pairs(cells[i]) do
+            cells[i][j] = math.random() > 0.5
+        end
+    end
+    platform.window:invalidate()
+end
+
+function loadPreset(presetData)
+    local working = genBlankCells(gridSize[1], gridSize[2])
+    for i in ipairs(presetData) do
+        local data = presetData[i]
+        working[data[2]][data[1]] = true
+    end
+    cells = working
+    platform.window:invalidate()
+end
+
 -- Run once on program start
 function on.activate()
     platform.window:setBackgroundColor(0x0000000)
     cells = genBlankCells(gridSize[1], gridSize[2])
+    menu = {
+        {"State", 
+            {"Step", simulateGrid},
+            {"Toggle", on.enterKey}
+        },
+        {"Cells",
+            {"Reset", on.backspaceKey},
+            {"Random", randomizeCellState}
+        },
+        {"Preset", 
+            {"Glider", function() loadPreset({{1, 2}, {2, 3}, {3, 1}, {3, 2}, {3, 3}}) end},
+            {"LWSS", function() loadPreset({{2, 4}, {5, 4}, {6, 5}, {2, 6}, {6, 6}, {3, 7}, {4, 7}, {5, 7}, {6, 7}}) end},
+            "-",
+            {"Very long clock", function()loadPreset({{1,4},{2,5},{2,6},{3,3},{3,4},{4,5},{4,6},{4,7},{5,2},{5,3},{5,4},{6,5},{6,6},{6,7},{6,8},{7,1},{7,2},{7,3},{7,4},{8,5},{8,6},{8,7},{9,2},{9,3},{9,4},{10,5},{10,6},{11,3},{11,4},{12,5}})end},
+            "-",
+            {"Boat on griddle", function() loadPreset({{4, 1}, {4, 2}, {2, 2}, {6, 3}, {1, 3}, {3, 6}, {1, 4}, {2, 4}, {3, 4}, {4, 4}, {5, 4}, {6, 4}, {4, 6}, {4, 6}, {2, 7}, {4, 7}, {3, 8}}) end},
+        }
+    }
+    toolpalette.register(menu)
 end
 
 -- On Paint Function
@@ -161,6 +199,8 @@ end
 function on.charIn(char)
     if char == " " then
         simulateGrid()
+    elseif char == "r" then
+        randomizeCellState()
     end
 end
 
