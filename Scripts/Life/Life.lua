@@ -2,13 +2,16 @@
 -- By Connor Slade
 
 -- Some Config Options
+local version  = '2.1'
 local timerPeroid = 0.1
 local cellSize = 26
 local gridSize = {12, 8}
 local offset = {3, 2}
 
 -- Dont Mess with this
+local loaded = false
 local cells = {}
+local startCells = {}
 local mouseDown = false
 local mouseToggleType = false
 local lastCell = {-1, -1}
@@ -45,6 +48,7 @@ end
 
 -- Simulate Each cell of the grid
 function simulateGrid()
+    if gen == 0 then startCells = cells end
     local newCells = genBlankCells(gridSize[1], gridSize[2])
     
     for y = 0, gridSize[2] - 1 do
@@ -103,6 +107,7 @@ function genBlankCells(x, y)
     return working
 end
 
+-- Align And show text at Top Right of screen
 function trTextAlign(gc, str, padding, paddingY)
     padding = padding or 5
     paddingY = paddingY or 3
@@ -111,7 +116,9 @@ function trTextAlign(gc, str, padding, paddingY)
     gc:drawString(str, x, y)
 end
 
+-- Randomize cell Life
 function randomizeCellState()
+    startCells = cells
     for i in pairs(cells) do
         for j in pairs(cells[i]) do
             cells[i][j] = math.random() > 0.5
@@ -120,6 +127,18 @@ function randomizeCellState()
     platform.window:invalidate()
 end
 
+-- Invert Cell State
+function invertCells()
+    startCells = cells
+    for i in pairs(cells) do
+        for j in pairs(cells[i]) do
+            cells[i][j] = not cells[i][j]
+        end
+    end
+    platform.window:invalidate()   
+end
+
+-- Load Preset Data - {{x, y}, {x, y}...}
 function loadPreset(presetData)
     local working = genBlankCells(gridSize[1], gridSize[2])
     for i in ipairs(presetData) do
@@ -130,26 +149,70 @@ function loadPreset(presetData)
     platform.window:invalidate()
 end
 
+-- Increment / Decrement value with a max and min value
+function safeCng(value, inc, min, max)
+    local working = value
+    value = value + inc
+    if value >= max then return max end
+    if value <= min then return min end
+    return value
+end
+
+-- Change World size by Inc (x and y)
+function changeWorldSize(inc) -- 156, 104
+    startCells = cells
+    gridSize[1] = safeCng(gridSize[1], inc, 104, 156)
+    gridSize[2] = safeCng(gridSize[2], inc, 104, 156)
+    cells = genBlankCells(gridSize[1], gridSize[2])
+    platform.window:invalidate()
+end
+
+function changeCellSize(inc)
+    cellSize = safeCng(cellSize, inc, 2, 206)
+    platform.window:invalidate()
+end
+
 -- Run once on program start
 function on.activate()
     platform.window:setBackgroundColor(0x0000000)
-    cells = genBlankCells(gridSize[1], gridSize[2])
+    if not loaded then
+        cells = genBlankCells(gridSize[1], gridSize[2])
+        loaded = true
+    end
     menu = {
-        {"State", 
-            {"Step", simulateGrid},
-            {"Toggle", on.enterKey}
+        {"State",
+            {"Step [SPACE]", simulateGrid},
+            {"Toggle [ENTER]", on.enterKey}
         },
         {"Cells",
-            {"Reset", on.backspaceKey},
-            {"Random", randomizeCellState}
+            {"Clear [ESC]", on.escapeKey},
+            {"Reset [DEL]", on.backspaceKey},
+            "-",
+            {"Random [R]", randomizeCellState},
+            {"Invert [I]", invertCells}
+        },
+        {"World",
+            {"Size + [+]", function() changeWorldSize(1) end},
+            {"Size - [-]", function() changeWorldSize(-1) end},
+            "-",
+            {"Cell Size + [×]", function() changeCellSize(1) end},
+            {"Cell Size - [÷]", function() changeCellSize(-1) end}
         },
         {"Preset", 
             {"Glider", function() loadPreset({{1, 2}, {2, 3}, {3, 1}, {3, 2}, {3, 3}}) end},
             {"LWSS", function() loadPreset({{2, 4}, {5, 4}, {6, 5}, {2, 6}, {6, 6}, {3, 7}, {4, 7}, {5, 7}, {6, 7}}) end},
             "-",
             {"Very long clock", function()loadPreset({{1,4},{2,5},{2,6},{3,3},{3,4},{4,5},{4,6},{4,7},{5,2},{5,3},{5,4},{6,5},{6,6},{6,7},{6,8},{7,1},{7,2},{7,3},{7,4},{8,5},{8,6},{8,7},{9,2},{9,3},{9,4},{10,5},{10,6},{11,3},{11,4},{12,5}})end},
+            {"Octagon 2", function() loadPreset({{6, 1}, {7, 1}, {5, 2}, {8, 2}, {4, 3}, {9, 3}, {3, 4}, {10, 4}, {3, 5}, {10, 5}, {4, 6}, {9, 6}, {5, 7}, {8, 7}, {6, 8}, {7, 8}}) end},
             "-",
+            {"Still Life", function()loadPreset({{1,2},{2,1},{2,3},{3,1},{3,3},{4,2},{1,6},{1,7},{2,6},{2,7},{8,1},{7,2},{9,2},{8,3},{9,3},{10,4},{10,5},{11,4},{11,6},{12,5},{6,5},{5,6},{7,6},{5,7},{7,7},{6,8}})end},
             {"Boat on griddle", function() loadPreset({{4, 1}, {4, 2}, {2, 2}, {6, 3}, {1, 3}, {3, 6}, {1, 4}, {2, 4}, {3, 4}, {4, 4}, {5, 4}, {6, 4}, {4, 6}, {4, 6}, {2, 7}, {4, 7}, {3, 8}}) end},
+        },
+        {"Info", 
+            {"By - Connor Slade", function()end},
+            {"Created - 5/10/2021", function()end},
+            {"Version - "..version, function()end}
+            
         }
     }
     toolpalette.register(menu)
@@ -201,6 +264,16 @@ function on.charIn(char)
         simulateGrid()
     elseif char == "r" then
         randomizeCellState()
+    elseif char == "i" then
+        invertCells()
+    elseif char == "+" then
+        changeWorldSize(1)
+    elseif char == "-" then
+        changeWorldSize(-1)
+    elseif char == "*" then
+        changeCellSize(1)
+    elseif char == "/" then
+        changeCellSize(-1)
     end
 end
 
@@ -215,9 +288,19 @@ function on.enterKey()
     platform.window:invalidate()
 end
 
--- On Backspace = Clear Grid
-function on.backspaceKey()
+-- On Esc = Clear Grid
+function on.escapeKey()
+    startCells = cells
     cells = genBlankCells(gridSize[1], gridSize[2])
+    timer.stop()
+    timerRunning = false
+    gen = 0
+    platform.window:invalidate()
+end
+
+-- On Backspace = Rollback Grid to pre simulation
+function on.backspaceKey()
+    cells = startCells
     timer.stop()
     timerRunning = false
     gen = 0
