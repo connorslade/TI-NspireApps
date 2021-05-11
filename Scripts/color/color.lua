@@ -2,6 +2,7 @@
 -- By Connor Slade
 
 local size = {212, 212}
+local per = 1
 
 local x = 0
 local y = 0
@@ -24,7 +25,8 @@ function reDrawText(gc, x, y, pre)
     gc:drawString("R = " .. x, 225, 0)
     gc:drawString("G = " .. y, 225, 30)
     gc:drawString("B = " .. pre, 225, 60)
-    gc:drawString("COLOR! V2.1", 220, 165)
+    gc:drawString("Per = " .. per, 225, 90)
+    gc:drawString("COLOR! V2.2", 220, 165)
     gc:drawString("By: Connor S", 220, 190)
 end
 
@@ -58,10 +60,12 @@ end
 
 -- Draw Color!
 function reDrawColor(gc, xs, ys, zs)
-    for i = 0,size[1] do
-        for j = 0,size[2] do
-            gc:setColorRGB(defineXY(xs, i, j, 255), defineXY(ys, i, j, 255), defineXY(zs, i, j, 255)) 
-            gc:fillRect(i,j, 1, 1)
+    for i = 0,size[1]/per do
+        for j = 0,size[2]/per do
+            local ni = i*per
+            local nj = j*per
+            gc:setColorRGB(defineXY(xs, ni, nj, 255), defineXY(ys, ni, nj, 255), defineXY(zs, ni, nj, 255)) 
+            gc:fillRect(ni, nj, per, per)
         end
     end
 end
@@ -76,8 +80,8 @@ end
 
 
 function on.charIn(char)
-    if char == "+" then precision = safeInc(precision, 120) end
-    if char == "-" then precision = safeDec(precision, 5) end
+    if char == "+" then per = safeInc(per, 213) end
+    if char == "-" then per = safeDec(per, 1) end
     
     if char == "1" then xs = safeDec(xs, 1) end
     if char == "4" then xs = 1 end
