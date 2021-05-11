@@ -1,13 +1,14 @@
 -- COLOR for TI-Nspire
 -- By Connor Slade
 
-local precision = 5
+local size = {212, 212}
 
 local x = 0
 local y = 0
-local ss = { "Red", "Green", "Blue" }
+local ss = { "Z", "Y", "X" }
 local xs = 1
 local ys = 2
+local zs = 3
 
 -- Set Background Color
 function setBG(gc, r, g, b)
@@ -17,12 +18,14 @@ end
 
 -- Re Draw X / Y text
 function reDrawText(gc, x, y, pre)
+    gc:setColorRGB(30, 30, 30) 
+    gc:fillRect(213, 0, 105, 212)
     gc:setColorRGB(255, 255, 255) 
-    gc:drawString("X = " .. x, 225, 0)
-    gc:drawString("Y = " .. y, 225, 30)
-    gc:drawString("P = " .. pre, 225, 60)
-    gc:drawString("COLOR! V1.2", 215, 165)
-    gc:drawString("By: Connor S", 215, 190)
+    gc:drawString("R = " .. x, 225, 0)
+    gc:drawString("G = " .. y, 225, 30)
+    gc:drawString("B = " .. pre, 225, 60)
+    gc:drawString("COLOR! V2.1", 220, 165)
+    gc:drawString("By: Connor S", 220, 190)
 end
 
 -- Increment value with a max value
@@ -45,24 +48,20 @@ end
 
 
 -- Define X / Y from string
-function defineXY(xy, r, g, b)
-    local lowerStr = xy:lower()
-    if lowerStr == "red" then return r end
-    if lowerStr == "green" then return g end
-    if lowerStr == "blue" then return b end
+function defineXY(xyz, x, y, z)
+    local lowerStr = xyz:lower()
+    if lowerStr == "x" then return x end
+    if lowerStr == "y" then return y end
+    if lowerStr == "z" then return z end
+    return 255
 end
 
 -- Draw Color!
-function reDrawColor(gc, pre, xs, ys)
-    local ita = 255 / pre
-    for r = 0,ita do
-        for g = 0,ita do
-            for b = 0,ita do
-                x = defineXY(xs, r, g, b)
-                y = defineXY(ys, r, g, b)
-                gc:setColorRGB(r*pre, g*pre, b*pre) 
-                gc:fillRect(x*4+2,y*4+2, 4, 4)
-            end
+function reDrawColor(gc, xs, ys, zs)
+    for i = 0,size[1] do
+        for j = 0,size[2] do
+            gc:setColorRGB(defineXY(xs, i, j, 255), defineXY(ys, i, j, 255), defineXY(zs, i, j, 255)) 
+            gc:fillRect(i,j, 1, 1)
         end
     end
 end
@@ -70,34 +69,26 @@ end
 -- On Paint Function
 function on.paint(gc)
     setBG(gc, 0, 0, 0)
-    reDrawColor(gc, precision, ss[xs], ss[ys])
-    reDrawText(gc, ss[xs], ss[ys], precision)
+    reDrawColor(gc, ss[xs], ss[ys], ss[zs])
+    reDrawText(gc, ss[xs], ss[ys], ss[zs])
 
 end
 
--- Key Routines
-function on.arrowDown()
-    xs = safeDec(xs, 1)
-    platform.window:invalidate()
-end
-
-function on.arrowUp()
-    xs = safeInc(xs, 3)
-    platform.window:invalidate()
-end
-
-function on.arrowLeft()
-    ys = safeDec(ys, 1)
-    platform.window:invalidate()
-end
-
-function on.arrowRight()
-    ys = safeInc(ys, 3)
-    platform.window:invalidate()
-end
 
 function on.charIn(char)
     if char == "+" then precision = safeInc(precision, 120) end
     if char == "-" then precision = safeDec(precision, 5) end
+    
+    if char == "1" then xs = safeDec(xs, 1) end
+    if char == "4" then xs = 1 end
+    if char == "7" then xs = safeInc(xs, 3) end
+    
+    if char == "2" then ys = safeDec(ys, 1) end
+    if char == "5" then ys = 2 end
+    if char == "8" then ys = safeInc(ys, 3) end
+    
+    if char == "3" then zs = safeDec(zs, 1) end
+    if char == "6" then zs = 3 end
+    if char == "9" then zs = safeInc(zs, 3) end
     platform.window:invalidate()
 end
