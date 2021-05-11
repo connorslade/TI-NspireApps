@@ -2,8 +2,8 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version  = '2.2.2'
-local timerPeroids = {0.5, 0.1, 0.01}
+local version  = '2.3.0'
+local timerPeroids = {0.75, 0.1, 0.01}
 local cellSize = 26
 local gridSize = {12, 8}
 local offset = {3, 2}
@@ -11,6 +11,7 @@ local offset = {3, 2}
 -- Dont Mess with this
 local loaded = false
 local mouseDown = false
+local crashEvent = false
 local timerRunning = false
 local mouseToggleType = false
 local gen = 0
@@ -22,6 +23,10 @@ local timerPeroid = timerPeroids[2]
 
 -- Draw Cell Grid
 function drawGrid(gc)
+    if crashEvent ~= false then
+        handleCrash(gc)
+        return
+    end
     for i in pairs(cells) do
         for j in pairs(cells[i]) do
             local value = cells[i][j]
@@ -145,7 +150,9 @@ function loadPreset(presetData)
     local working = genBlankCells(gridSize[1], gridSize[2])
     for i in ipairs(presetData) do
         local data = presetData[i]
-        working[data[2]][data[1]] = true
+        if data[2] <= #cells and data[1] <= #cells[1] then
+            working[data[2]][data[1]] = true
+        end
     end
     cells = working
     docChanged()
@@ -179,10 +186,33 @@ function docChanged()
     document.markChanged()
 end
 
+-- Crash Event Handler
+function handleCrash(gc)
+    local timerRunning = false
+    timer.stop()
+    gc:setFont("sansserif", "b", 12)
+    gc:setColorRGB(0, 255, 0)
+    gc:drawString("Oh Nose...", 5, 0)
+    gc:drawString("Thare was a Crash!", 5, 20)
+    gc:setFont("sansserif", "r", 10)
+    gc:drawString("Report these detils to github or Sigma#8214", 5, 40)
+    gc:drawString("Line:   "..crashEvent[1], 5, 60)
+    gc:drawString("Error:  "..crashEvent[2], 5, 75)
+    gc:drawString("Calls:  "..crashEvent[3], 5, 90)
+    gc:drawString("Local: "..crashEvent[4], 5, 150)
+end
+
+
+
 -- Run once on program start
 function on.activate()
     platform.window:setBackgroundColor(0x0000000)
     if not loaded then
+        platform.registerErrorHandler(
+            function(lineNumber, errorMessage, callStack, locals)
+                crashEvent = {lineNumber, errorMessage, callStack, locals}
+                return true
+            end)
         cells = genBlankCells(gridSize[1], gridSize[2])
         loaded = true
     end
