@@ -2,7 +2,7 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version  = '2.3.0'
+local version  = '2.3.1'
 local timerPeroids = {0.75, 0.1, 0.01}
 local cellSize = 26
 local gridSize = {12, 8}
@@ -170,8 +170,9 @@ end
 -- Change World size by Inc (x and y)
 function changeWorldSize(inc) -- 156, 104
     startCells = cells
-    gridSize[1] = safeCng(gridSize[1], inc, 104, 156)
-    gridSize[2] = safeCng(gridSize[2], inc, 104, 156)
+    gridSize[1] = safeCng(gridSize[1], inc, 1, 156)
+    gridSize[2] = safeCng(gridSize[2], inc, 1, 156)
+    print(gridSize[1].."--"..gridSize[2])
     cells = genBlankCells(gridSize[1], gridSize[2])
     docChanged()
 end
