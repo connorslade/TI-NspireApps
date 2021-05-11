@@ -2,7 +2,7 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version  = '2.3.1'
+local version  = '2.3.3'
 local timerPeroids = {0.75, 0.1, 0.01}
 local cellSize = 26
 local gridSize = {12, 8}
@@ -190,6 +190,17 @@ function handleCrash(gc)
     gc:drawString("Local: "..crashEvent[4], 5, 150)
 end
 
+function reset()
+    cellSize = 26
+    gridSize = {12, 8}
+    loaded = false
+    timerRunning = false
+    gen = 0
+    cells = {}
+    startCells = {}
+    timer.stop()
+    on.activate()
+end
 
 
 -- Run once on program start
@@ -240,7 +251,8 @@ function on.activate()
         {"Info", 
             {"By - Connor Slade", function()end},
             {"Created - 5/10/2021", function()end},
-            {"Version - "..version, function()end}
+            {"Version - "..version, function()end},
+            {"Reset", reset}
             
         }
     }
