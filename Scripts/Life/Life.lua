@@ -23,10 +23,6 @@ local timerPeroid = timerPeroids[2]
 
 -- Draw Cell Grid
 function drawGrid(gc)
-    if crashEvent ~= false then
-        handleCrash(gc)
-        return
-    end
     for i in pairs(cells) do
         for j in pairs(cells[i]) do
             local value = cells[i][j]
@@ -42,14 +38,6 @@ function drawGrid(gc)
             gc:drawString(gen, 35, 4)
             trTextAlign(gc, "Connor S")
         end
-    end
-    if timerRunning then
-        gc:setColorRGB(0, 240, 45) 
-        gc:fillPolygon({8, 5, 25, 15, 8, 25})
-    else
-        gc:setColorRGB(240, 0, 0)
-        gc:fillRect(8, 5, 5, 20)
-        gc:fillRect(16, 5, 5, 20)
     end
 end
 
@@ -168,11 +156,10 @@ function safeCng(value, inc, min, max)
 end
 
 -- Change World size by Inc (x and y)
-function changeWorldSize(inc) -- 156, 104
+function changeWorldSize(inc)
     startCells = cells
     gridSize[1] = safeCng(gridSize[1], inc, 1, 156)
     gridSize[2] = safeCng(gridSize[2], inc, 1, 156)
-    print(gridSize[1].."--"..gridSize[2])
     cells = genBlankCells(gridSize[1], gridSize[2])
     docChanged()
 end
@@ -262,7 +249,19 @@ end
 
 -- On Paint Function
 function on.paint(gc)
+    if crashEvent ~= false then
+        handleCrash(gc)
+        return
+    end
     drawGrid(gc)
+    if timerRunning then
+        gc:setColorRGB(0, 240, 45) 
+        gc:fillPolygon({8, 5, 25, 15, 8, 25})
+    else
+        gc:setColorRGB(240, 0, 0)
+        gc:fillRect(8, 5, 5, 20)
+        gc:fillRect(16, 5, 5, 20)
+   end
 end
 
 -- Simulate Grid on timer Tick
@@ -350,10 +349,12 @@ function on.backspaceKey()
     docChanged()
 end
 
+-- Save Cells other stuff
 function on.save()
     return {cells, startCells, gen}
 end
 
+-- Load said Cells and other stuff
 function on.restore(state)
     local cellsData = state[1]
     local startCellsData = state[2]
