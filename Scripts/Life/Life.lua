@@ -75,9 +75,10 @@ function simulateGrid()
     if compare2DTable(cells, newCells) and doAutoStop then
         timer.stop()
         timerRunning = false
+    else
+        gen = gen + 1
     end
     cells = newCells
-    gen = gen + 1
     docChanged()
 end
 
@@ -173,6 +174,22 @@ function loadPlainTextInfo(info)
     end
     cells = newArray
     docChanged()
+end
+
+-- Make current cells array into PlainText
+function exportToPlainText()
+    local working = "! Made With https://github.com/Basicprogrammer10/TI-NspireApps"
+    for y in ipairs(cells) do
+         working = working..string.char(10)
+        for x in ipairs(cells[y]) do
+            if cells[y][x] then
+                working = working..'O'
+            else
+                working = working..'.'
+            end
+        end
+    end
+    return working
 end
 
 -- Split string to table
@@ -304,6 +321,7 @@ function on.activate()
         },
         {"World",
             {"Load Clipboard", function() loadPlainTextInfo(clipboard.getText()) end},
+            {"Save to Clipbord", function() clipboard.addText(exportToPlainText()) end},
             "-",
             {"Size + [+]", function() changeWorldSize(1) end},
             {"Size - [-]", function() changeWorldSize(-1) end},
@@ -406,6 +424,8 @@ function on.charIn(char)
         changeCellSize(1)
     elseif char == "/" then
         changeCellSize(-1)
+    elseif char == "d" then
+        exportToPlainText()
     end
 end
 
