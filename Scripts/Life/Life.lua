@@ -2,11 +2,12 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version  = '2.3.3'
+local version  = '2.3.5'
 local timerPeroids = {0.75, 0.1, 0.01}
 local cellSize = 26
 local gridSize = {12, 8}
 local offset = {3, 2}
+local doAutoStop = true
 
 -- Dont Mess with this
 local loaded = false
@@ -70,6 +71,10 @@ function simulateGrid()
                 end
             end
         end
+    end
+    if compare2DTable(cells, newCells) and doAutoStop then
+        timer.stop()
+        timerRunning = false
     end
     cells = newCells
     gen = gen + 1
@@ -174,6 +179,19 @@ function docChanged()
     document.markChanged()
 end
 
+-- Return true if bolth 2d tables are the same
+function compare2DTable(a, b)
+    local same = true
+    for i in ipairs(a) do
+        for j in ipairs(a[i]) do
+            if a[i][j] ~= b[i][j] then
+                same = false
+            end
+        end
+    end
+    return same
+end
+
 -- Crash Event Handler
 function handleCrash(gc)
     local timerRunning = false
@@ -190,6 +208,7 @@ function handleCrash(gc)
     gc:drawString("Local: "..crashEvent[4], 5, 150)
 end
 
+-- Reset everything!
 function reset()
     cellSize = 26
     gridSize = {12, 8}
@@ -200,7 +219,20 @@ function reset()
     startCells = {}
     timer.stop()
     on.activate()
+    docChanged()
 end
+
+-- Toggle if sim auto stops when over
+function toggleAutoStop()
+    doAutoStop = not doAutoStop
+    if not doAutoStop then
+        menu[1][4][1] = "Toggle AutoStop (Off)"
+    else
+        menu[1][4][1] = "Toggle AutoStop (On)"
+    end
+    toolpalette.register(menu)
+end
+
 
 
 -- Run once on program start
@@ -218,7 +250,8 @@ function on.activate()
     menu = {
         {"State",
             {"Step [SPACE]", simulateGrid},
-            {"Toggle [ENTER]", on.enterKey}
+            {"Toggle [ENTER]", on.enterKey},
+            {"Toggle AutoStop (On)", toggleAutoStop}
         },
         {"Cells",
             {"Clear [ESC]", on.escapeKey},
@@ -314,6 +347,8 @@ end
 -- Take Keyboard Input
 function on.charIn(char)
     if char == " " then
+        timer.stop()
+        timerRunning = false
         simulateGrid()
     elseif char == "r" then
         randomizeCellState()
