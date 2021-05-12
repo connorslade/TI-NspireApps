@@ -2,7 +2,7 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version  = '2.3.5'                -- The Version displayd under Info
+local version  = '2.3.6'                -- The Version displayd under Info
 local timerPeroids = {0.75, 0.1, 0.01}  -- The speeds to pick from {Slow, Normal, Fast!}
 local cellSize = 26                     -- Defult cell size (px)
 local gridSize = {12, 8}                -- Defult Grid Size {x, y}
@@ -220,6 +220,9 @@ end
 -- Return true if bolth 2d tables are the same
 function compare2DTable(a, b)
     local same = true
+    if not (#a == #b or #a[1] == #b[1]) then
+        return false
+    end
     for i in ipairs(a) do
         for j in ipairs(a[i]) do
             if a[i][j] ~= b[i][j] then
