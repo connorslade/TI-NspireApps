@@ -2,7 +2,7 @@
 -- By Connor Slade
 
 local size = {212, 212}
-local per = 1
+local per = 2
 
 local x = 0
 local y = 0
