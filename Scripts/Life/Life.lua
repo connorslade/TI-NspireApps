@@ -2,12 +2,12 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version  = '2.3.5'
-local timerPeroids = {0.75, 0.1, 0.01}
-local cellSize = 26
-local gridSize = {12, 8}
-local offset = {3, 2}
-local doAutoStop = true
+local version  = '2.3.5'                -- The Version displayd under Info
+local timerPeroids = {0.75, 0.1, 0.01}  -- The speeds to pick from {Slow, Normal, Fast!}
+local cellSize = 26                     -- Defult cell size (px)
+local gridSize = {12, 8}                -- Defult Grid Size {x, y}
+local offset = {3, 2}                   -- Top Left Grid Offset (px)
+local doAutoStop = true                 -- Automaticly stop sim if only still life / nothing
 
 -- Dont Mess with this
 local loaded = false
@@ -143,13 +143,49 @@ function loadPreset(presetData)
     local working = genBlankCells(gridSize[1], gridSize[2])
     for i in ipairs(presetData) do
         local data = presetData[i]
-        if data[2] <= #cells and data[1] <= #cells[1] then
+        if data[2] <= #cells and data[1] <= #cells[1] then -- SHould compare #working not cells? Bug?
             working[data[2]][data[1]] = true
         end
     end
     cells = working
     docChanged()
 end
+
+-- Load a Lifeform from Plantext Format
+function loadPlainTextInfo(info)
+    if info == nil then return end
+    local backLines = 0
+    local newArray = genBlankCells(gridSize[1], gridSize[2])
+    local working = info
+    
+    local infoArray = splitString(working, string.char(10))
+    for i in ipairs(infoArray) do
+        if infoArray[i]:sub(1, 1) ~= "!" then
+            for k = 1, #infoArray[i] do
+                local char = infoArray[i]:sub(k, k)
+                if i <= #newArray and k <= #newArray[1] then
+                    newArray[i - backLines][k] = char == 'O'
+                end
+            end
+        else
+            backLines = backLines + 1
+        end
+    end
+    cells = newArray
+end
+
+-- Split string to table
+function splitString(str, sep)
+    if str == nil then
+        sep = "%s"
+    end
+    local t = {}
+    for str in string.gmatch(str, "([^"..sep.."]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
+
 
 -- Increment / Decrement value with a max and min value
 function safeCng(value, inc, min, max)
@@ -169,11 +205,13 @@ function changeWorldSize(inc)
     docChanged()
 end
 
+-- Safly change the px szie of the cells
 function changeCellSize(inc)
     cellSize = safeCng(cellSize, inc, 2, 206)
     docChanged()
 end
 
+-- Re Render and mark Doc as changed
 function docChanged()
     platform.window:invalidate()
     document.markChanged()
@@ -261,6 +299,8 @@ function on.activate()
             {"Invert [I]", invertCells}
         },
         {"World",
+            {"Load PlainText from Clipboard", function() loadPlainTextInfo(clipboard.getText()) end},
+            "-",
             {"Size + [+]", function() changeWorldSize(1) end},
             {"Size - [-]", function() changeWorldSize(-1) end},
             "-",
