@@ -2,7 +2,7 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version  = '2.3.6'                -- The Version displayd under Info
+local version  = '2.3.7'                -- The Version displayd under Info
 local timerPeroids = {0.75, 0.1, 0.01}  -- The speeds to pick from {Slow, Normal, Fast!}
 local cellSize = 26                     -- Defult cell size (px)
 local gridSize = {12, 8}                -- Defult Grid Size {x, y}
@@ -172,6 +172,7 @@ function loadPlainTextInfo(info)
         end
     end
     cells = newArray
+    docChanged()
 end
 
 -- Split string to table
