@@ -303,7 +303,7 @@ function on.activate()
             {"Invert [I]", invertCells}
         },
         {"World",
-            {"Load PlainText from Clipboard", function() loadPlainTextInfo(clipboard.getText()) end},
+            {"Load Clipboard", function() loadPlainTextInfo(clipboard.getText()) end},
             "-",
             {"Size + [+]", function() changeWorldSize(1) end},
             {"Size - [-]", function() changeWorldSize(-1) end},
@@ -433,6 +433,9 @@ end
 
 -- On Backspace = Rollback Grid to pre simulation
 function on.backspaceKey()
+    if #startCells == 0 then
+        startCells = genBlankCells(gridSize[1], gridSize[2])
+    end
     cells = startCells
     timer.stop()
     timerRunning = false
