@@ -2,9 +2,10 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version = "1.0.0"
-local text = "Hello World :P"
+local version = "1.0.1"
 local speed = 0.3
+local defaultColor = 0xffffff
+local text = "Hello World :P"
 local presets = {"SOS", "Nose", "Hello World"}
 local morseCode = {
     ["A"] = ".-",
@@ -152,6 +153,17 @@ function round(num, dps)
   return math.floor(num * mult + 0.5) / mult
 end
 
+--- Random Hex number
+---@param len number
+function randHex(len)
+    local hex = {1, 2, 3, 4, 5, 6, 7, 8, 9, 'a', 'b', 'c', 'd', 'e', 'f'}
+    local working = ""
+    for i = 1, len do
+        working = working..hex[math.random(#hex)]
+    end
+    return working
+end
+
 
 
 --- Toggle if morse code is being shown
@@ -192,6 +204,16 @@ function loadPreset(preset)
     platform.window:invalidate()
 end
 
+--- Change Flash Color
+---@param color number (hex)
+function loadColor(color)
+    if color == nil then
+        color = '0x'..randHex(2)..randHex(2)..randHex(2)
+    end
+    defaultColor = color
+    platform.window:invalidate()
+end
+
 function on.activate()
     platform.window:setBackgroundColor(0x0000000)
     toFlash = stringToArray(text)
@@ -208,6 +230,15 @@ function on.activate()
             {"-", function() changeSpeed(-0.1) end}
         },
         {"Presets"
+        },
+        {"Colors",
+            {"Random", function() loadColor() end},
+            "-",
+            {"White", function() loadColor(0xffffff) end},
+            {"Red", function() loadColor(0xff0000) end},
+            {"Green", function() loadColor(0x00ff00) end},
+            {"Blue", function() loadColor(0x0000ff) end},
+            {"Purple", function() loadColor(0xff00ff) end}
         },
         {"Info",
             {"By: Connor Slade", nullFunc},
@@ -231,8 +262,9 @@ function on.paint(gc)
         gc:setColorRGB(0xffffff)
         gc:setFont("sansserif", "r", 9)
         local speed = tostring(round(speed / 0.3, 1)) .. "x "
-        alignText(gc, dotString(gc, " Text: " .. text, speed), true, false, false, true)
         alignText(gc, "Connor S", false, true, true, false)
+        gc:setColorRGB(defaultColor)
+        alignText(gc, dotString(gc, " Text: " .. text, speed), true, false, false, true)
         gc:setColorRGB(26, 150, 255)
         alignText(gc, speed, false, true, false, true)
         return
@@ -255,7 +287,7 @@ function simTick()
     end
 
     local textChar = string.upper(toFlash[textIndex])
-    local color = 0xffffff
+    local color = defaultColor
 
     if nextChar then
         platform.window:setBackgroundColor(0x000000)
@@ -315,12 +347,15 @@ end
 
 function on.enterKey()
     toggleRunning()
+    platform.window:invalidate()
 end
 
 function on.arrowUp()
     changeSpeed(0.1)
+    platform.window:invalidate()
 end
 
 function on.arrowDown()
     changeSpeed(-0.1)
+    platform.window:invalidate()
 end
