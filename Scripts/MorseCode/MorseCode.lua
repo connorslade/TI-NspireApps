@@ -2,13 +2,19 @@
 -- By Connor Slade
 
 -- Some Config Options
-local version = "1.2.0"
-local speed = 0.3
-local looping = false
-local defaultColor = 0xffffff
-local text = "Hello World :P"
-local presets = {"SOS", "Nose", "Hello World"}
-local morseCode = {
+local version = "1.2.2"       -- Version Displayed under Info
+local speed = 0.3             -- Default Speed
+local looping = false         -- If looping is enabled by default
+local defaultColor = 0xffffff -- Default Flash Color (0xrrggbb)
+local text = "Hello World :P" -- Default Text
+
+local presets = {             -- Preset Text
+    "SOS",
+    "Nose",
+    "Hello World"
+}
+
+local morseCode = {           -- Text to Morse Code conversion
     ["A"] = ".-",
     ["B"] = "-...",
     ["C"] = "-.-.",
@@ -67,7 +73,7 @@ local morseCode = {
     ["¡"] = "--..."
 }
 
--- Dont Change This
+-- Don't Change This
 local time = 1
 local timeWait = 1
 local textIndex = 1
@@ -91,7 +97,7 @@ function stringToArray(str)
     return t
 end
 
---- Safly Change value with min and max
+--- Safely Change value with min and max
 ---@param value number
 ---@param inc number
 ---@param min number
@@ -118,7 +124,7 @@ end
 ---@param r boolean
 ---@param t boolean
 ---@param b boolean
----@param padding tabel
+---@param padding table
 function alignText(gc, text, l, r, t, b, padding)
     local xy = {0, 0}
     padding = padding or {0, 0}
@@ -129,7 +135,7 @@ function alignText(gc, text, l, r, t, b, padding)
     gc:drawString(text, xy[1] + padding[1], xy[2] + padding[2])
 end
 
---- Add a ... to a string if its too long
+--- Add a ... to a string if it's too long
 ---@param gc any
 ---@param string string
 ---@param real string
@@ -173,13 +179,14 @@ end
 
 
 
---- Toggle if morse code is being shown
+--- Toggle if Morse code is being shown
 ---@param value boolean
 function toggleRunning(value)
     if value == nil then
         value = not running
     end
     if value then
+        cursor.hide()
         timer.start(speed)
         running = true
         return
@@ -247,6 +254,8 @@ function resetAll()
     running = false
     docChanged()
 end
+
+
 
 function on.activate()
     platform.window:setBackgroundColor(0x0000000)
@@ -402,7 +411,7 @@ function on.restore(state)
     if state[4] ~= nil then defaultColor = state[4] end
 end
 
--- Keybord Shortcuts
+-- Keyboard Shortcuts
 
 function on.enterKey()
     toggleRunning()
