@@ -2,7 +2,6 @@
 -- By Connor Slade
 
 -- Reset Under Info
--- Make Speed make sence
 
 -- Some Config Options
 local version = "1.0.1"
@@ -218,8 +217,6 @@ function loadColor(color)
     platform.window:invalidate()
 end
 
---- Toggle if code should loop
----@param value boolean
 function toggleLooping(value)
     if not not value then
         looping = not looping
@@ -277,18 +274,16 @@ function on.paint(gc)
         gc:fillRect(16, 5, 5, 20)
         gc:setColorRGB(0xffffff)
         gc:setFont("sansserif", "r", 9)
-        local speed = tostring(round(speed / 0.3, 1)) .. "x "
+        local speed = tostring(round(0.3 / speed, 1)) .. "x "
         alignText(gc, "Connor S", false, true, true, false)
         gc:setColorRGB(defaultColor)
         alignText(gc, dotString(gc, " Text: " .. text, speed), true, false, false, true)
         gc:setColorRGB(26, 150, 255)
         alignText(gc, speed, false, true, false, true)
         gc:setColorRGB(240, 0, 0) 
-        gc:setPen("medium")
         if looping then
-            gc:drawArc(30, 5, 10, 10, 30, 270)
-            gc:drawLine(38, 6, 42, 15)
-            gc:drawArc(40, 5, 10, 10, 210, 270)
+            gc:setFont("sansserif", "r", 13)
+            alignText(gc, "∞", false, true, false, true, {-1, -8})
             return
         end
         return
@@ -381,11 +376,11 @@ function on.enterKey()
 end
 
 function on.arrowUp()
-    changeSpeed(0.1)
+    changeSpeed(-0.1)
     platform.window:invalidate()
 end
 
 function on.arrowDown()
-    changeSpeed(-0.1)
+    changeSpeed(0.1)
     platform.window:invalidate()
 end
