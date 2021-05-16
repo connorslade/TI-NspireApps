@@ -167,6 +167,12 @@ function randHex(len)
     return working
 end
 
+--- Re render Window and Mark as changed
+function docChanged()
+    platform.window:invalidate()
+    document.markChanged()
+end
+
 
 
 --- Toggle if morse code is being shown
@@ -204,7 +210,7 @@ end
 function loadPreset(preset)
     text = preset
     toFlash = stringToArray(preset)
-    platform.window:invalidate()
+    docChanged()
 end
 
 --- Change Flash Color
@@ -214,7 +220,7 @@ function loadColor(color)
         color = '0x'..randHex(2)..randHex(2)..randHex(2)
     end
     defaultColor = color
-    platform.window:invalidate()
+    docChanged()
 end
 
 function toggleLooping(value)
@@ -223,7 +229,7 @@ function toggleLooping(value)
     else
         looping = value
     end
-    platform.window:invalidate()
+    docChanged()
 end
 
 function on.activate()
@@ -275,7 +281,7 @@ function on.paint(gc)
         gc:setColorRGB(0xffffff)
         gc:setFont("sansserif", "r", 9)
         local speed = tostring(round(0.3 / speed, 1)) .. "x "
-        alignText(gc, "Connor S", false, true, true, false)
+        alignText(gc, "Connor S ", false, true, true, false)
         gc:setColorRGB(defaultColor)
         alignText(gc, dotString(gc, " Text: " .. text, speed), true, false, false, true)
         gc:setColorRGB(26, 150, 255)
@@ -303,11 +309,11 @@ function simTick()
         if looping then
             textIndex = 1
             timeWait = time + 9
-            platform.window:invalidate()
+            docChanged()
             return
         end
         toggleRunning(false)
-        platform.window:invalidate()
+        docChanged()
         return
     end
 
@@ -318,7 +324,7 @@ function simTick()
         platform.window:setBackgroundColor(0x000000)
         timeWait = time
         nextChar = false
-        platform.window:invalidate()
+        docChanged()
         return
     end
 
@@ -345,7 +351,7 @@ function simTick()
     end
 
     platform.window:setBackgroundColor(color)
-    platform.window:invalidate()
+    docChanged()
 end
 
 function on.timer()
@@ -359,28 +365,39 @@ end
 function on.charIn(char)
     text = text..char
     toFlash = stringToArray(text)
-    platform.window:invalidate()
+    docChanged()
 end
 
 function on.backspaceKey()
     text = text:sub(1, #text-1)
     toFlash = stringToArray(text)
-    platform.window:invalidate()
+    docChanged()
+end
+
+function on.save()
+    return {text, speed, looping, defaultColor}
+end
+
+function on.restore(state)
+    if state[1] ~= nil then text = state[1] end
+    if state[2] ~= nil then speed = state[2] end
+    if state[3] ~= nil then looping = state[3] end
+    if state[4] ~= nil then defaultColor = state[4] end
 end
 
 -- Keybord Shortcuts
 
 function on.enterKey()
     toggleRunning()
-    platform.window:invalidate()
+    docChanged()
 end
 
 function on.arrowUp()
     changeSpeed(-0.1)
-    platform.window:invalidate()
+    docChanged()
 end
 
 function on.arrowDown()
     changeSpeed(0.1)
-    platform.window:invalidate()
+    docChanged()
 end
