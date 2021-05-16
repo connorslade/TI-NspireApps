@@ -1,9 +1,13 @@
 -- Morse Code - 5/15/2021
 -- By Connor Slade
 
+-- Reset Under Info
+-- Make Speed make sence
+
 -- Some Config Options
 local version = "1.0.1"
 local speed = 0.3
+local looping = false
 local defaultColor = 0xffffff
 local text = "Hello World :P"
 local presets = {"SOS", "Nose", "Hello World"}
@@ -214,6 +218,17 @@ function loadColor(color)
     platform.window:invalidate()
 end
 
+--- Toggle if code should loop
+---@param value boolean
+function toggleLooping(value)
+    if not not value then
+        looping = not looping
+    else
+        looping = value
+    end
+    platform.window:invalidate()
+end
+
 function on.activate()
     platform.window:setBackgroundColor(0x0000000)
     toFlash = stringToArray(text)
@@ -222,7 +237,8 @@ function on.activate()
         {"State",
             {"Start", function() toggleRunning(true) end},
             {"Stop", function() toggleRunning(false) end},
-            {"Tick", simTick}
+            {"Tick", simTick},
+            {"Loop", toggleLooping}
         },
         {"Speed",
             {"Speed = " .. tostring(speed), nullFunc},
@@ -256,7 +272,7 @@ end
 
 function on.paint(gc)
     if not running then
-        gc:setColorRGB(240, 0, 0)
+        gc:setColorRGB(240, 0, 0) 
         gc:fillRect(8, 5, 5, 20)
         gc:fillRect(16, 5, 5, 20)
         gc:setColorRGB(0xffffff)
@@ -267,6 +283,14 @@ function on.paint(gc)
         alignText(gc, dotString(gc, " Text: " .. text, speed), true, false, false, true)
         gc:setColorRGB(26, 150, 255)
         alignText(gc, speed, false, true, false, true)
+        gc:setColorRGB(240, 0, 0) 
+        gc:setPen("medium")
+        if looping then
+            gc:drawArc(30, 5, 10, 10, 30, 270)
+            gc:drawLine(38, 6, 42, 15)
+            gc:drawArc(40, 5, 10, 10, 210, 270)
+            return
+        end
         return
     end
     gc:setColorRGB(0, 240, 45)
@@ -281,6 +305,12 @@ function simTick()
 
     if textIndex > #toFlash then
         platform.window:setBackgroundColor(0x000000)
+        if looping then
+            textIndex = 1
+            timeWait = time + 9
+            platform.window:invalidate()
+            return
+        end
         toggleRunning(false)
         platform.window:invalidate()
         return
