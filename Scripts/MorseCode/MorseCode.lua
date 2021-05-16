@@ -1,10 +1,8 @@
 -- Morse Code - 5/15/2021
 -- By Connor Slade
 
--- Reset Under Info
-
 -- Some Config Options
-local version = "1.0.1"
+local version = "1.2.0"
 local speed = 0.3
 local looping = false
 local defaultColor = 0xffffff
@@ -223,12 +221,30 @@ function loadColor(color)
     docChanged()
 end
 
+--- Toggle if code should loop
+---@param value boolean
 function toggleLooping(value)
     if not not value then
         looping = not looping
     else
         looping = value
     end
+    docChanged()
+end
+
+--- Reset all Vars
+function resetAll()
+    speed = 0.3
+    looping = false
+    defaultColor = 0xffffff
+    text = "Hello World :P"
+    time = 1
+    timeWait = 1
+    textIndex = 1
+    charIndex = 1
+    toFlash = {}
+    nextChar = false
+    running = false
     docChanged()
 end
 
@@ -262,7 +278,8 @@ function on.activate()
         {"Info",
             {"By: Connor Slade", nullFunc},
             {"Created: 5/15/2021", nullFunc},
-            {"Version: "..version, nullFunc}
+            {"Version: "..version, nullFunc},
+            {"Reset", resetAll}
         }
     }
     
