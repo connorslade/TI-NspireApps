@@ -22,5 +22,5 @@
 Other Notable Features
 - Loading Plaintext life from clipboard
 - Saving Plaintext to clipboard
-- Ajust Simulation Speed
+- Adjust Simulation Speed
 - 6 Preset Lifeforms
