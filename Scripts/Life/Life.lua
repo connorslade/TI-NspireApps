@@ -509,8 +509,6 @@ function on.charIn(char)
         changeCellSize(1)
     elseif char == "/" then
         changeCellSize(-1)
-    elseif char == "d" then
-        exportToPlainText()
     end
 end
 
