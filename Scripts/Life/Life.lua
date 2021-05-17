@@ -3,10 +3,9 @@
 
 -- PS Im sorry you have to see this garbage 'code'...
 -- This is only the 3rd thing ive ever made in lua so...
--- TODO: Redo all of this
 
 -- Some Config Options
-local version  = '2.3.8'                -- The Version displayd under Info
+local version  = '2.3.9'                -- The Version displayd under Info
 local timerPeroids = {0.75, 0.1, 0.01}  -- The speeds to pick from {Slow, Normal, Fast!}
 local cellSize = 26                     -- Defult cell size (px)
 local gridSize = {12, 8}                -- Defult Grid Size {x, y}
@@ -26,6 +25,149 @@ local lastCell = {-1, -1}
 local timerPeroid = timerPeroids[2]
 
 
+
+--- Toggle state of a cell based off of pixel on the screen
+---@param mx number Mouse X
+---@param my number Mouse Y
+---@param value boolean Current Cell Value
+---@return boolean New value of cell
+function toggleCellByPx(mx, my, value)
+    if my <= #cells and my > 0 and mx <= #cells[1] and mx > 0 then
+        if value == nil then
+            cells[my][mx] = not cells[my][mx]
+        else
+            cells[my][mx] = value 
+        end
+        docChanged()
+        return cells[my][mx]
+    end
+    return false
+end
+
+--- Fill the cel array with DEATH
+---@param x number 2d Array width
+---@param y number 2d Array height
+---@return table The empty 2d table
+function genBlankCells(x, y)
+    local working = {}
+    for i = 1,y do
+        working[i] = {}
+        for j = 1,x do
+            working[i][j] = false
+        end
+    end
+    return working
+end
+
+--- Align text to Left, Right, Top or bottom (Or all)
+---@param gc any GraphicsContext
+---@param text string Text to put on screen
+---@param l boolean If allign to Left
+---@param r boolean If align to Right
+---@param t boolean If align to Top
+---@param b boolean If align to Bottom
+---@param padding table Padding for text {x, y}
+---@return nil
+function alignText(gc, text, l, r, t, b, padding)
+    local windowSize = {platform.window:width(), platform.window:height()}
+    local xy = {0, 0}
+    padding = padding or {0, 0}
+    if r then xy[1] = windowSize[1] - gc:getStringWidth(text) end
+    if l and r then xy[1] = windowSize[1]/2 - gc:getStringWidth(text)/2 end
+    if b then xy[2] = windowSize[2] - gc:getStringHeight(text) end
+    if t and b then xy[2] = windowSize[2]/2 - gc:getStringHeight(text)/2 end
+    gc:drawString(text, xy[1] + padding[1], xy[2] + padding[2])
+end
+
+--- Re Render and mark Doc as changed
+---@return nil
+function docChanged()
+    platform.window:invalidate()
+    document.markChanged()
+end
+
+--- Return true if bolth 2d tables are the same
+---@param a table 2d table
+---@param b table 2d table
+---@return boolean true if a and b are the same
+function compare2DTable(a, b)
+    local same = true
+    if not (#a == #b or #a[1] == #b[1]) then
+        return false
+    end
+    for i in ipairs(a) do
+        for j in ipairs(a[i]) do
+            if a[i][j] ~= b[i][j] then
+                same = false
+            end
+        end
+    end
+    return same
+end
+
+--- Split string to table
+---@param str string String to split
+---@param sep string What to split it by
+---@return table table from each char of string
+function splitString(str, sep)
+    if str == nil then
+        sep = "%s"
+    end
+    local t = {}
+    for str in string.gmatch(str, "([^"..sep.."]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
+
+
+--- Increment / Decrement value with a max and min value
+---@param value number Current value of var
+---@param inc number What to try to change it by
+---@param min number Min that it may be changed to
+---@param max number Max that it may be changed to
+---@return number what to set var to (a = safeCng(a, 1, 0, 10))
+function safeCng(value, inc, min, max)
+    local working = value
+    value = value + inc
+    if value >= max then return max end
+    if value <= min then return min end
+    return value
+end
+
+--- Split string to table
+---@param str string String to split
+---@param sep string What to split it by
+---@return table table from each char of string
+function splitString(str, sep)
+    if str == nil then
+        sep = "%s"
+    end
+    local t = {}
+    for str in string.gmatch(str, "([^"..sep.."]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
+
+
+--- Increment / Decrement value with a max and min value
+---@param value number Current value of var
+---@param inc number What to try to change it by
+---@param min number Min that it may be changed to
+---@param max number Max that it may be changed to
+---@return number what to set var to (a = safeCng(a, 1, 0, 10))
+function safeCng(value, inc, min, max)
+    local working = value
+    value = value + inc
+    if value >= max then return max end
+    if value <= min then return min end
+    return value
+end
+
+
+
+
 --- Draw the Life World
 ---@param gc gc GraphicsContext
 ---@return nil
@@ -43,7 +185,7 @@ function drawGrid(gc)
             gc:drawRect(x, y, cellSize, cellSize)
             gc:setColorRGB(200, 200, 200)
             gc:drawString(gen, 35, 4)
-            trTextAlign(gc, "Connor S")
+            alignText(gc, "Connor S", false, true, true, false, {-5, 0})
         end
     end
 end
@@ -87,53 +229,6 @@ function simulateGrid()
     end
     cells = newCells
     docChanged()
-end
-
---- Toggle state of a cell based off of pixel on the screen
----@param mx number Mouse X
----@param my number Mouse Y
----@param value boolean Current Cell Value
----@return boolean New value of cell
-function toggleCellByPx(mx, my, value)
-    if my <= #cells and my > 0 and mx <= #cells[1] and mx > 0 then
-        if value == nil then
-            cells[my][mx] = not cells[my][mx]
-        else
-            cells[my][mx] = value 
-        end
-        docChanged()
-        return cells[my][mx]
-    end
-    return false
-end
-
---- Fill the cel array with DEATH
----@param x number 2d Array width
----@param y number 2d Array height
----@return table The empty 2d table
-function genBlankCells(x, y)
-    local working = {}
-    for i = 1,y do
-        working[i] = {}
-        for j = 1,x do
-            working[i][j] = false
-        end
-    end
-    return working
-end
-
---- Align And show text at Top Right of screen
----@param gc gc GraphicsContext
----@param str string Text to align
----@param padding number X Padding (px)
----@param paddingY number Y Padding (px)
----@return nil
-function trTextAlign(gc, str, padding, paddingY)
-    padding = padding or 5
-    paddingY = paddingY or 3
-    local x = platform.window:width() - gc:getStringWidth(str) - padding
-    local y = 0 + paddingY
-    gc:drawString(str, x, y)
 end
 
 --- Randomize cell Life
@@ -218,36 +313,6 @@ function exportToPlainText()
     return working
 end
 
---- Split string to table
----@param str string String to split
----@param sep string What to split it by
----@return table table from each char of string
-function splitString(str, sep)
-    if str == nil then
-        sep = "%s"
-    end
-    local t = {}
-    for str in string.gmatch(str, "([^"..sep.."]+)") do
-        table.insert(t, str)
-    end
-    return t
-end
-
-
---- Increment / Decrement value with a max and min value
----@param value number Current value of var
----@param inc number What to try to change it by
----@param min number Min that it may be changed to
----@param max number Max that it may be changed to
----@return number what to set var to (a = safeCng(a, 1, 0, 10))
-function safeCng(value, inc, min, max)
-    local working = value
-    value = value + inc
-    if value >= max then return max end
-    if value <= min then return min end
-    return value
-end
-
 --- Change World size by Inc (x and y)
 ---@param inc number What to increse world size by
 ---@return nil
@@ -265,32 +330,6 @@ end
 function changeCellSize(inc)
     cellSize = safeCng(cellSize, inc, 2, 206)
     docChanged()
-end
-
---- Re Render and mark Doc as changed
----@return nil
-function docChanged()
-    platform.window:invalidate()
-    document.markChanged()
-end
-
---- Return true if bolth 2d tables are the same
----@param a table 2d table
----@param b table 2d table
----@return boolean true if a and b are the same
-function compare2DTable(a, b)
-    local same = true
-    if not (#a == #b or #a[1] == #b[1]) then
-        return false
-    end
-    for i in ipairs(a) do
-        for j in ipairs(a[i]) do
-            if a[i][j] ~= b[i][j] then
-                same = false
-            end
-        end
-    end
-    return same
 end
 
 --- Crash Event Handler
