@@ -1,15 +1,19 @@
 -- Life (Conways Game Of Life)
 -- By Connor Slade
 
+-- PS Im sorry you have to see this garbage 'code'...
+-- This is only the 3rd thing ive ever made in lua so...
+-- TODO: Redo all of this
+
 -- Some Config Options
-local version  = '2.3.7'                -- The Version displayd under Info
+local version  = '2.3.8'                -- The Version displayd under Info
 local timerPeroids = {0.75, 0.1, 0.01}  -- The speeds to pick from {Slow, Normal, Fast!}
 local cellSize = 26                     -- Defult cell size (px)
 local gridSize = {12, 8}                -- Defult Grid Size {x, y}
 local offset = {3, 2}                   -- Top Left Grid Offset (px)
 local doAutoStop = true                 -- Automaticly stop sim if only still life / nothing
 
--- Dont Mess with this
+-- Dont Mess with this (OR ELSE!!!)
 local loaded = false
 local mouseDown = false
 local crashEvent = false
@@ -22,7 +26,9 @@ local lastCell = {-1, -1}
 local timerPeroid = timerPeroids[2]
 
 
--- Draw Cell Grid
+--- Draw the Life World
+---@param gc gc GraphicsContext
+---@return nil
 function drawGrid(gc)
     for i in pairs(cells) do
         for j in pairs(cells[i]) do
@@ -42,7 +48,8 @@ function drawGrid(gc)
     end
 end
 
--- Simulate Each cell of the grid
+--- Simulate Each cell of the grid
+---@return nil
 function simulateGrid()
     if gen == 0 then startCells = cells end
     local newCells = genBlankCells(gridSize[1], gridSize[2])
@@ -82,7 +89,11 @@ function simulateGrid()
     docChanged()
 end
 
--- Toggle state of a cell based off of pixel on the screen
+--- Toggle state of a cell based off of pixel on the screen
+---@param mx number Mouse X
+---@param my number Mouse Y
+---@param value boolean Current Cell Value
+---@return boolean New value of cell
 function toggleCellByPx(mx, my, value)
     if my <= #cells and my > 0 and mx <= #cells[1] and mx > 0 then
         if value == nil then
@@ -96,7 +107,10 @@ function toggleCellByPx(mx, my, value)
     return false
 end
 
--- Fill the cel array with DEATH
+--- Fill the cel array with DEATH
+---@param x number 2d Array width
+---@param y number 2d Array height
+---@return table The empty 2d table
 function genBlankCells(x, y)
     local working = {}
     for i = 1,y do
@@ -108,7 +122,12 @@ function genBlankCells(x, y)
     return working
 end
 
--- Align And show text at Top Right of screen
+--- Align And show text at Top Right of screen
+---@param gc gc GraphicsContext
+---@param str string Text to align
+---@param padding number X Padding (px)
+---@param paddingY number Y Padding (px)
+---@return nil
 function trTextAlign(gc, str, padding, paddingY)
     padding = padding or 5
     paddingY = paddingY or 3
@@ -117,7 +136,8 @@ function trTextAlign(gc, str, padding, paddingY)
     gc:drawString(str, x, y)
 end
 
--- Randomize cell Life
+--- Randomize cell Life
+---@return nil
 function randomizeCellState()
     startCells = cells
     for i in pairs(cells) do
@@ -128,7 +148,8 @@ function randomizeCellState()
     docChanged()
 end
 
--- Invert Cell State
+--- Invert Cell State
+---@return nil
 function invertCells()
     startCells = cells
     for i in pairs(cells) do
@@ -139,7 +160,9 @@ function invertCells()
     docChanged()
 end
 
--- Load Preset Data - {{x, y}, {x, y}...}
+--- Load Preset Data
+---@param presetData table 2d Array - {{x, y}, {x, y}...}
+---@return nil
 function loadPreset(presetData)
     local working = genBlankCells(gridSize[1], gridSize[2])
     for i in ipairs(presetData) do
@@ -152,7 +175,9 @@ function loadPreset(presetData)
     docChanged()
 end
 
--- Load a Lifeform from Plantext Format
+--- Load a Lifeform from Plantext Format
+---@param info string Plaintext Life data
+---@return nil
 function loadPlainTextInfo(info)
     if info == nil then return end
     local backLines = 0
@@ -176,7 +201,8 @@ function loadPlainTextInfo(info)
     docChanged()
 end
 
--- Make current cells array into PlainText
+--- Make current cells array into PlainText
+---@return string plaintext version of current world
 function exportToPlainText()
     local working = "! Made With https://github.com/Basicprogrammer10/TI-NspireApps"
     for y in ipairs(cells) do
@@ -192,7 +218,10 @@ function exportToPlainText()
     return working
 end
 
--- Split string to table
+--- Split string to table
+---@param str string String to split
+---@param sep string What to split it by
+---@return table table from each char of string
 function splitString(str, sep)
     if str == nil then
         sep = "%s"
@@ -205,7 +234,12 @@ function splitString(str, sep)
 end
 
 
--- Increment / Decrement value with a max and min value
+--- Increment / Decrement value with a max and min value
+---@param value number Current value of var
+---@param inc number What to try to change it by
+---@param min number Min that it may be changed to
+---@param max number Max that it may be changed to
+---@return number what to set var to (a = safeCng(a, 1, 0, 10))
 function safeCng(value, inc, min, max)
     local working = value
     value = value + inc
@@ -214,7 +248,9 @@ function safeCng(value, inc, min, max)
     return value
 end
 
--- Change World size by Inc (x and y)
+--- Change World size by Inc (x and y)
+---@param inc number What to increse world size by
+---@return nil
 function changeWorldSize(inc)
     startCells = cells
     gridSize[1] = safeCng(gridSize[1], inc, 1, 156)
@@ -223,19 +259,25 @@ function changeWorldSize(inc)
     docChanged()
 end
 
--- Safly change the px szie of the cells
+--- Safly change the px szie of the cells
+---@param inc number What to change cell size by
+---@return nil
 function changeCellSize(inc)
     cellSize = safeCng(cellSize, inc, 2, 206)
     docChanged()
 end
 
--- Re Render and mark Doc as changed
+--- Re Render and mark Doc as changed
+---@return nil
 function docChanged()
     platform.window:invalidate()
     document.markChanged()
 end
 
--- Return true if bolth 2d tables are the same
+--- Return true if bolth 2d tables are the same
+---@param a table 2d table
+---@param b table 2d table
+---@return boolean true if a and b are the same
 function compare2DTable(a, b)
     local same = true
     if not (#a == #b or #a[1] == #b[1]) then
@@ -251,7 +293,9 @@ function compare2DTable(a, b)
     return same
 end
 
--- Crash Event Handler
+--- Crash Event Handler
+---@param gc gc GraphicsContext
+---@return nil
 function handleCrash(gc)
     local timerRunning = false
     timer.stop()
@@ -267,7 +311,8 @@ function handleCrash(gc)
     gc:drawString("Local: "..crashEvent[4], 5, 150)
 end
 
--- Reset everything!
+--- Reset everything!
+---@return nil
 function reset()
     cellSize = 26
     gridSize = {12, 8}
@@ -281,7 +326,8 @@ function reset()
     docChanged()
 end
 
--- Toggle if sim auto stops when over
+--- Toggle if sim auto stops when over
+---@return nil
 function toggleAutoStop()
     doAutoStop = not doAutoStop
     if not doAutoStop then
@@ -294,7 +340,7 @@ end
 
 
 
--- Run once on program start
+--- Run once on program start
 function on.activate()
     platform.window:setBackgroundColor(0x0000000)
     if not loaded then
@@ -354,7 +400,7 @@ function on.activate()
     toolpalette.register(menu)
 end
 
--- On Paint Function
+--- On Paint Function
 function on.paint(gc)
     if crashEvent ~= false then
         handleCrash(gc)
@@ -371,12 +417,12 @@ function on.paint(gc)
    end
 end
 
--- Simulate Grid on timer Tick
+--- Simulate Grid on timer Tick
 function on.timer()
     simulateGrid()
 end
 
--- On mouse Down
+--- On mouse Down
 function on.mouseDown(x, y)
     local mx = math.ceil((x - offset[1]) / cellSize) or o
     local my = math.ceil((y - offset[2]) / cellSize) or 0
@@ -388,14 +434,14 @@ function on.mouseDown(x, y)
     docChanged()
 end
 
--- On mouse up
+--- On mouse up
 function on.mouseUp(x, y)
     cursor.set("default")
     mouseDown = false
     platform.window:invalidate()
 end
 
--- Set Cell states whare mouse moved
+--- Set Cell states whare mouse moved
 function on.mouseMove(x, y)
     local mx = math.ceil((x - offset[1]) / cellSize) or o
     local my = math.ceil((y - offset[2]) / cellSize) or 0
@@ -406,7 +452,7 @@ function on.mouseMove(x, y)
     end
 end
 
--- Take Keyboard Input
+--- Take Keyboard Input
 function on.charIn(char)
     if char == " " then
         timer.stop()
@@ -429,7 +475,7 @@ function on.charIn(char)
     end
 end
 
--- On Enter Key = Toggle Timer
+--- On Enter Key = Toggle Timer
 function on.enterKey()
     if timerRunning then
         timer.stop()
@@ -441,7 +487,7 @@ function on.enterKey()
     timerRunning = not timerRunning
 end
 
--- On Esc = Clear Grid
+--- On Esc = Clear Grid
 function on.escapeKey()
     startCells = cells
     cells = genBlankCells(gridSize[1], gridSize[2])
@@ -451,7 +497,7 @@ function on.escapeKey()
     docChanged()
 end
 
--- On Backspace = Rollback Grid to pre simulation
+--- On Backspace = Rollback Grid to pre simulation
 function on.backspaceKey()
     if #startCells == 0 then
         startCells = genBlankCells(gridSize[1], gridSize[2])
@@ -463,12 +509,12 @@ function on.backspaceKey()
     docChanged()
 end
 
--- Save Cells other stuff
+--- Save Cells other stuff
 function on.save()
     return {cells, startCells, gen}
 end
 
--- Load said Cells and other stuff
+--- Load said Cells and other stuff
 function on.restore(state)
     local cellsData = state[1]
     local startCellsData = state[2]
